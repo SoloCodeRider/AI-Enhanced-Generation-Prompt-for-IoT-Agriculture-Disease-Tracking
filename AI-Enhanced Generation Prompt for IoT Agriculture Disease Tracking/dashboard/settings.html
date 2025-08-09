@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings - IoT-Enhanced Crop Disease Tracking System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f7fafc;
+            color: #333;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            color: #4a5568;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 20px;
+        }
+
+        .nav-links a {
+            color: #4a5568;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+
+        .nav-links a:hover {
+            color: #667eea;
+        }
+
+        .settings-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+
+        .card h2 {
+            color: #4a5568;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #e2e8f0;
+            font-size: 1.3rem;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #4a5568;
+            font-weight: 500;
+        }
+
+        .form-group input[type="text"],
+        .form-group input[type="number"],
+        .form-group input[type="password"],
+        .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #e2e8f0;
+            border-radius: 5px;
+            font-size: 0.9rem;
+        }
+
+        .form-group input[type="checkbox"] {
+            margin-right: 10px;
+        }
+
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+        }
+
+        .save-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 10px 20px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            margin-top: 10px;
+        }
+
+        .save-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .save-button:active {
+            transform: translateY(0);
+        }
+
+        .status-message {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 5px;
+            display: none;
+        }
+
+        .success {
+            background-color: #c6f6d5;
+            color: #2f855a;
+        }
+
+        .error {
+            background-color: #fed7d7;
+            color: #c53030;
+        }
+
+        @media (max-width: 768px) {
+            .settings-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔧 System Settings</h1>
+            <div class="nav-links">
+                <a href="/dashboard">Dashboard</a>
+                <a href="#" id="logoutLink">Logout</a>
+            </div>
+        </div>
+
+        <div class="settings-grid">
+            <div class="card">
+                <h2>System Configuration</h2>
+                <form id="systemConfigForm">
+                    <div class="form-group">
+                        <label for="fieldSizeX">Field Size X (meters)</label>
+                        <input type="number" id="fieldSizeX" name="fieldSizeX" value="500">
+                    </div>
+                    <div class="form-group">
+                        <label for="fieldSizeY">Field Size Y (meters)</label>
+                        <input type="number" id="fieldSizeY" name="fieldSizeY" value="300">
+                    </div>
+                    <div class="form-group">
+                        <label for="numSensors">Number of Sensors</label>
+                        <input type="number" id="numSensors" name="numSensors" value="25">
+                    </div>
+                    <div class="form-group">
+                        <label for="simulationDuration">Simulation Duration (hours)</label>
+                        <input type="number" id="simulationDuration" name="simulationDuration" value="24">
+                    </div>
+                    <div class="form-group">
+                        <label for="alertThreshold">Alert Threshold (0-1)</label>
+                        <input type="number" id="alertThreshold" name="alertThreshold" value="0.7" min="0" max="1" step="0.1">
+                    </div>
+                    <div class="form-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="enableRealTimeProcessing" name="enableRealTimeProcessing" checked>
+                            Enable Real-Time Processing
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="enableAIAnalysis" name="enableAIAnalysis" checked>
+                            Enable AI Analysis
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="enableCloudStorage" name="enableCloudStorage" checked>
+                            Enable Cloud Storage
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="enableAlerts" name="enableAlerts" checked>
+                            Enable Alerts
+                        </label>
+                    </div>
+                    <button type="submit" class="save-button">Save Configuration</button>
+                    <div id="systemConfigMessage" class="status-message"></div>
+                </form>
+            </div>
+
+            <div class="card">
+                <h2>Cloud Storage Settings</h2>
+                <form id="cloudStorageForm">
+                    <div class="form-group">
+                        <label for="storageProvider">Storage Provider</label>
+                        <select id="storageProvider" name="storageProvider">
+                            <option value="aws">AWS S3</option>
+                            <option value="azure">Azure Blob Storage</option>
+                            <option value="gcp">Google Cloud Storage</option>
+                            <option value="local">Local Storage</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="bucketName">Bucket Name</label>
+                        <input type="text" id="bucketName" name="bucketName" value="crop-disease-tracking">
+                    </div>
+                    <div class="form-group">
+                        <label for="region">Region</label>
+                        <input type="text" id="region" name="region" value="us-east-1">
+                    </div>
+                    <div class="form-group">
+                        <label for="accessKey">Access Key</label>
+                        <input type="password" id="accessKey" name="accessKey" value="your-access-key">
+                    </div>
+                    <div class="form-group">
+                        <label for="secretKey">Secret Key</label>
+                        <input type="password" id="secretKey" name="secretKey" value="your-secret-key">
+                    </div>
+                    <button type="submit" class="save-button">Save Storage Settings</button>
+                    <div id="cloudStorageMessage" class="status-message"></div>
+                </form>
+            </div>
+
+            <div class="card">
+                <h2>Alert System Settings</h2>
+                <form id="alertSystemForm">
+                    <div class="form-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="emailEnabled" name="emailEnabled" checked>
+                            Enable Email Alerts
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="smsEnabled" name="smsEnabled">
+                            Enable SMS Alerts
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="webhookEnabled" name="webhookEnabled" checked>
+                            Enable Webhook Alerts
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="dashboardEnabled" name="dashboardEnabled" checked>
+                            Enable Dashboard Alerts
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label for="smtpServer">SMTP Server</label>
+                        <input type="text" id="smtpServer" name="smtpServer" value="smtp.gmail.com">
+                    </div>
+                    <div class="form-group">
+                        <label for="smtpPort">SMTP Port</label>
+                        <input type="number" id="smtpPort" name="smtpPort" value="587">
+                    </div>
+                    <div class="form-group">
+                        <label for="smtpUsername">SMTP Username</label>
+                        <input type="text" id="smtpUsername" name="smtpUsername" value="alerts@cropdisease.com">
+                    </div>
+                    <div class="form-group">
+                        <label for="smtpPassword">SMTP Password</label>
+                        <input type="password" id="smtpPassword" name="smtpPassword" value="your-password">
+                    </div>
+                    <button type="submit" class="save-button">Save Alert Settings</button>
+                    <div id="alertSystemMessage" class="status-message"></div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Check if user is authenticated
+        document.addEventListener('DOMContentLoaded', function() {
+            const token = localStorage.getItem('access_token');
+            if (!token) {
+                window.location.href = '/dashboard/login';
+            }
+
+            // Add authorization header to all fetch requests
+            const originalFetch = window.fetch;
+            window.fetch = function(url, options = {}) {
+                if (!options.headers) {
+                    options.headers = {};
+                }
+
+                if (token) {
+                    options.headers['Authorization'] = `Bearer ${token}`;
+                }
+
+                return originalFetch(url, options);
+            };
+        });
+
+        // Logout functionality
+        document.getElementById('logoutLink').addEventListener('click', function(e) {
+            e.preventDefault();
+            localStorage.removeItem('access_token');
+            localStorage.removeItem('token_type');
+            window.location.href = '/dashboard/login';
+        });
+
+        // System Configuration Form
+        document.getElementById('systemConfigForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const messageElement = document.getElementById('systemConfigMessage');
+            
+            try {
+                const formData = {
+                    field_size: [
+                        parseFloat(document.getElementById('fieldSizeX').value),
+                        parseFloat(document.getElementById('fieldSizeY').value)
+                    ],
+                    num_sensors: parseInt(document.getElementById('numSensors').value),
+                    simulation_duration_hours: parseFloat(document.getElementById('simulationDuration').value),
+                    alert_threshold: parseFloat(document.getElementById('alertThreshold').value),
+                    enable_real_time_processing: document.getElementById('enableRealTimeProcessing').checked,
+                    enable_ai_analysis: document.getElementById('enableAIAnalysis').checked,
+                    enable_cloud_storage: document.getElementById('enableCloudStorage').checked,
+                    enable_alerts: document.getElementById('enableAlerts').checked
+                };
+                
+                const response = await fetch('/api/system-config', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                });
+                
+                if (response.ok) {
+                    messageElement.textContent = 'System configuration saved successfully';
+                    messageElement.className = 'status-message success';
+                } else {
+                    const errorData = await response.json();
+                    messageElement.textContent = `Error: ${errorData.detail || 'Failed to save configuration'}`;
+                    messageElement.className = 'status-message error';
+                }
+            } catch (error) {
+                console.error('Error saving system configuration:', error);
+                messageElement.textContent = 'Error: Failed to save configuration';
+                messageElement.className = 'status-message error';
+            }
+            
+            messageElement.style.display = 'block';
+            setTimeout(() => {
+                messageElement.style.display = 'none';
+            }, 5000);
+        });
+
+        // Cloud Storage Form
+        document.getElementById('cloudStorageForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const messageElement = document.getElementById('cloudStorageMessage');
+            
+            try {
+                const formData = {
+                    provider: document.getElementById('storageProvider').value,
+                    bucket_name: document.getElementById('bucketName').value,
+                    region: document.getElementById('region').value,
+                    access_key: document.getElementById('accessKey').value,
+                    secret_key: document.getElementById('secretKey').value
+                };
+                
+                const response = await fetch('/api/storage-config', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                });
+                
+                if (response.ok) {
+                    messageElement.textContent = 'Storage settings saved successfully';
+                    messageElement.className = 'status-message success';
+                } else {
+                    const errorData = await response.json();
+                    messageElement.textContent = `Error: ${errorData.detail || 'Failed to save storage settings'}`;
+                    messageElement.className = 'status-message error';
+                }
+            } catch (error) {
+                console.error('Error saving storage settings:', error);
+                messageElement.textContent = 'Error: Failed to save storage settings';
+                messageElement.className = 'status-message error';
+            }
+            
+            messageElement.style.display = 'block';
+            setTimeout(() => {
+                messageElement.style.display = 'none';
+            }, 5000);
+        });
+
+        // Alert System Form
+        document.getElementById('alertSystemForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const messageElement = document.getElementById('alertSystemMessage');
+            
+            try {
+                const formData = {
+                    email_enabled: document.getElementById('emailEnabled').checked,
+                    sms_enabled: document.getElementById('smsEnabled').checked,
+                    webhook_enabled: document.getElementById('webhookEnabled').checked,
+                    dashboard_enabled: document.getElementById('dashboardEnabled').checked,
+                    smtp_config: {
+                        smtp_server: document.getElementById('smtpServer').value,
+                        smtp_port: parseInt(document.getElementById('smtpPort').value),
+                        username: document.getElementById('smtpUsername').value,
+                        password: document.getElementById('smtpPassword').value
+                    }
+                };
+                
+                const response = await fetch('/api/alert-config', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                });
+                
+                if (response.ok) {
+                    messageElement.textContent = 'Alert settings saved successfully';
+                    messageElement.className = 'status-message success';
+                } else {
+                    const errorData = await response.json();
+                    messageElement.textContent = `Error: ${errorData.detail || 'Failed to save alert settings'}`;
+                    messageElement.className = 'status-message error';
+                }
+            } catch (error) {
+                console.error('Error saving alert settings:', error);
+                messageElement.textContent = 'Error: Failed to save alert settings';
+                messageElement.className = 'status-message error';
+            }
+            
+            messageElement.style.display = 'block';
+            setTimeout(() => {
+                messageElement.style.display = 'none';
+            }, 5000);
+        });
+    </script>
+</body>
+</html>

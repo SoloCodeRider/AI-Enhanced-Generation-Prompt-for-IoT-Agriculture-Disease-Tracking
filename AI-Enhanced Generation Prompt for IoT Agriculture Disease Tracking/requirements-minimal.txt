@@ -1,0 +1,10 @@
+# Core Framework
+fastapi
+uvicorn
+pydantic
+python-multipart
+
+# Utilities
+python-dotenv
+websockets
+aiofiles

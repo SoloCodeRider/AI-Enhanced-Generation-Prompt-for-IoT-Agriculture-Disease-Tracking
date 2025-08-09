@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IoT-Enhanced Crop Disease Tracking Dashboard</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+        }
+
+        .card h3 {
+            color: #4a5568;
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 10px;
+        }
+
+        .status-indicators {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .status-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .status-value {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .status-label {
+            color: #718096;
+            font-size: 0.9rem;
+        }
+
+        .healthy { color: #48bb78; }
+        .warning { color: #ed8936; }
+        .critical { color: #f56565; }
+
+        .graph-container {
+            height: 400px;
+            width: 100%;
+        }
+
+        .alerts-container {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .alert-item {
+            background: #f7fafc;
+            border-left: 4px solid #e53e3e;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+        }
+
+        .alert-item.medium {
+            border-left-color: #ed8936;
+        }
+
+        .alert-item.low {
+            border-left-color: #48bb78;
+        }
+
+        .alert-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .alert-message {
+            color: #4a5568;
+            font-size: 0.9rem;
+        }
+
+        .alert-time {
+            color: #a0aec0;
+            font-size: 0.8rem;
+            margin-top: 5px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #718096;
+        }
+
+        .connection-status {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 10px 15px;
+            border-radius: 20px;
+            color: white;
+            font-weight: bold;
+            z-index: 1000;
+        }
+
+        .connected {
+            background: #48bb78;
+        }
+
+        .disconnected {
+            background: #f56565;
+        }
+
+        @media (max-width: 768px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .status-indicators {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="connection-status" id="connectionStatus">
+        Connecting...
+    </div>
+
+    <div class="container">
+        <div class="header">
+            <h1>🌾 IoT-Enhanced Crop Disease Tracking</h1>
+            <p>Real-time disease mutation tracking and AI-powered analysis</p>
+        </div>
+
+        <div class="status-indicators">
+            <div class="status-card">
+                <div class="status-value" id="activeSensors">0</div>
+                <div class="status-label">Active Sensors</div>
+            </div>
+            <div class="status-card">
+                <div class="status-value" id="diseaseCenters">0</div>
+                <div class="status-label">Disease Centers</div>
+            </div>
+            <div class="status-card">
+                <div class="status-value" id="mutationEvents">0</div>
+                <div class="status-label">Mutation Events</div>
+            </div>
+            <div class="status-card">
+                <div class="status-value" id="systemUptime">0s</div>
+                <div class="status-label">System Uptime</div>
+            </div>
+        </div>
+
+        <div class="dashboard-grid">
+            <div class="card">
+                <h3>🌿 Real-Time Disease Spread Graph</h3>
+                <div id="diseaseGraph" class="graph-container"></div>
+            </div>
+
+            <div class="card">
+                <h3>📊 Disease Detection Statistics</h3>
+                <div id="diseaseStats" class="graph-container"></div>
+            </div>
+
+            <div class="card">
+                <h3>🚨 Recent Alerts</h3>
+                <div id="alertsContainer" class="alerts-container">
+                    <div class="loading">Loading alerts...</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>⚡ System Performance</h3>
+                <div id="performanceChart" class="graph-container"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // WebSocket connections
+        let graphSocket = null;
+        let alertsSocket = null;
+        let isConnected = false;
+
+        // Data storage
+        let currentGraphData = null;
+        let recentAlerts = [];
+        let systemStatus = {};
+
+        // Initialize WebSocket connections
+        function initializeWebSockets() {
+            // Graph updates WebSocket
+            graphSocket = new WebSocket('ws://localhost:8000/ws/graph-updates');
+            
+            graphSocket.onopen = function() {
+                console.log('Graph WebSocket connected');
+                updateConnectionStatus(true);
+            };
+
+            graphSocket.onmessage = function(event) {
+                const data = JSON.parse(event.data);
+                currentGraphData = data;
+                updateDiseaseGraph(data);
+                updateSystemStatus(data);
+            };
+
+            graphSocket.onclose = function() {
+                console.log('Graph WebSocket disconnected');
+                updateConnectionStatus(false);
+                // Reconnect after 5 seconds
+                setTimeout(initializeWebSockets, 5000);
+            };
+
+            // Alerts WebSocket
+            alertsSocket = new WebSocket('ws://localhost:8000/ws/alerts');
+            
+            alertsSocket.onopen = function() {
+                console.log('Alerts WebSocket connected');
+            };
+
+            alertsSocket.onmessage = function(event) {
+                const data = JSON.parse(event.data);
+                recentAlerts = data.alerts || [];
+                updateAlertsDisplay(recentAlerts);
+            };
+
+            alertsSocket.onclose = function() {
+                console.log('Alerts WebSocket disconnected');
+                // Reconnect after 5 seconds
+                setTimeout(initializeWebSockets, 5000);
+            };
+        }
+
+        function updateConnectionStatus(connected) {
+            const statusElement = document.getElementById('connectionStatus');
+            isConnected = connected;
+            
+            if (connected) {
+                statusElement.textContent = '🟢 Connected';
+                statusElement.className = 'connection-status connected';
+            } else {
+                statusElement.textContent = '🔴 Disconnected';
+                statusElement.className = 'connection-status disconnected';
+            }
+        }
+
+        function updateDiseaseGraph(data) {
+            if (!data || !data.nodes) return;
+
+            const nodes = data.nodes;
+            const edges = data.edges || [];
+
+            // Prepare node data for Plotly
+            const nodeX = nodes.map(node => node.x);
+            const nodeY = nodes.map(node => node.y);
+            const nodeColors = nodes.map(node => {
+                switch(node.health_status) {
+                    case 'healthy': return '#48bb78';
+                    case 'infected': return '#f56565';
+                    case 'mutation': return '#ed8936';
+                    default: return '#a0aec0';
+                }
+            });
+            const nodeSizes = nodes.map(node => 10 + (node.disease_confidence || 0) * 20);
+
+            // Prepare edge data
+            const edgeX = [];
+            const edgeY = [];
+            edges.forEach(edge => {
+                const sourceNode = nodes.find(n => n.id === edge.source);
+                const targetNode = nodes.find(n => n.id === edge.target);
+                if (sourceNode && targetNode) {
+                    edgeX.push(sourceNode.x, targetNode.x, null);
+                    edgeY.push(sourceNode.y, targetNode.y, null);
+                }
+            });
+
+            const traces = [
+                // Edges
+                {
+                    x: edgeX,
+                    y: edgeY,
+                    mode: 'lines',
+                    line: { width: 1, color: '#cbd5e0' },
+                    hoverinfo: 'none',
+                    showlegend: false
+                },
+                // Nodes
+                {
+                    x: nodeX,
+                    y: nodeY,
+                    mode: 'markers',
+                    marker: {
+                        size: nodeSizes,
+                        color: nodeColors,
+                        line: { width: 2, color: 'white' }
+                    },
+                    text: nodes.map(node => 
+                        `Section: ${node.id}<br>Health: ${node.health_status}<br>Disease: ${(node.disease_confidence || 0).toFixed(2)}`
+                    ),
+                    hoverinfo: 'text',
+                    name: 'Crop Sections'
+                }
+            ];
+
+            const layout = {
+                title: 'Real-Time Disease Spread',
+                xaxis: { title: 'Field Width (meters)' },
+                yaxis: { title: 'Field Length (meters)' },
+                showlegend: true,
+                hovermode: 'closest',
+                margin: { b: 20, l: 5, r: 5, t: 40 }
+            };
+
+            Plotly.newPlot('diseaseGraph', traces, layout, { responsive: true });
+        }
+
+        function updateSystemStatus(data) {
+            // Update status indicators
+            document.getElementById('activeSensors').textContent = 
+                data.nodes ? data.nodes.filter(n => n.health_status !== 'healthy').length : 0;
+            document.getElementById('diseaseCenters').textContent = 
+                data.disease_centers ? data.disease_centers.length : 0;
+            document.getElementById('mutationEvents').textContent = 
+                data.mutation_events ? data.mutation_events.length : 0;
+        }
+
+        function updateAlertsDisplay(alerts) {
+            const container = document.getElementById('alertsContainer');
+            
+            if (alerts.length === 0) {
+                container.innerHTML = '<div class="loading">No recent alerts</div>';
+                return;
+            }
+
+            container.innerHTML = alerts.map(alert => `
+                <div class="alert-item ${alert.severity}">
+                    <div class="alert-title">${alert.title}</div>
+                    <div class="alert-message">${alert.message}</div>
+                    <div class="alert-time">${new Date(alert.timestamp).toLocaleString()}</div>
+                </div>
+            `).join('');
+        }
+
+        function updateDiseaseStats() {
+            // Simulate disease statistics
+            const ctx = document.getElementById('diseaseStats').getContext('2d');
+            
+            if (window.diseaseStatsChart) {
+                window.diseaseStatsChart.destroy();
+            }
+
+            window.diseaseStatsChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Healthy', 'Infected', 'Mutation'],
+                    datasets: [{
+                        data: [70, 20, 10],
+                        backgroundColor: ['#48bb78', '#f56565', '#ed8936'],
+                        borderWidth: 2,
+                        borderColor: 'white'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+        }
+
+        function updatePerformanceChart() {
+            // Simulate performance data
+            const ctx = document.getElementById('performanceChart').getContext('2d');
+            
+            if (window.performanceChart) {
+                window.performanceChart.destroy();
+            }
+
+            const labels = Array.from({length: 20}, (_, i) => i);
+            const data = labels.map(() => Math.random() * 100);
+
+            window.performanceChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Processing Latency (ms)',
+                        data: data,
+                        borderColor: '#667eea',
+                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateSystemUptime() {
+            // Simulate system uptime
+            let uptime = parseInt(document.getElementById('systemUptime').textContent) || 0;
+            uptime += 1;
+            document.getElementById('systemUptime').textContent = uptime + 's';
+        }
+
+        // Initialize dashboard
+        function initializeDashboard() {
+            // Initialize WebSocket connections
+            initializeWebSockets();
+
+            // Initialize charts
+            updateDiseaseStats();
+            updatePerformanceChart();
+
+            // Update system uptime every second
+            setInterval(updateSystemUptime, 1000);
+
+            // Fetch initial data
+            fetchSystemStatus();
+        }
+
+        async function fetchSystemStatus() {
+            try {
+                const response = await fetch('http://localhost:8000/api/system-status');
+                const data = await response.json();
+                
+                if (data.system_status) {
+                    systemStatus = data.system_status;
+                    updateSystemStatus(data.current_graph_data || {});
+                }
+            } catch (error) {
+                console.error('Failed to fetch system status:', error);
+            }
+        }
+
+        // Start the dashboard when page loads
+        document.addEventListener('DOMContentLoaded', initializeDashboard);
+    </script>
+</body>
+</html>
